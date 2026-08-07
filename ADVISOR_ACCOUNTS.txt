@@ -1,0 +1,25 @@
+INITIAL DEVELOPMENT ACCOUNTS
+============================
+
+Manager
+Username: manager
+Password: manager123
+
+Advisor 01  | username: advisor01 | password: Adv01@2026
+Advisor 02  | username: advisor02 | password: Adv02@2026
+Advisor 03  | username: advisor03 | password: Adv03@2026
+Advisor 04  | username: advisor04 | password: Adv04@2026
+Advisor 05  | username: advisor05 | password: Adv05@2026
+Advisor 06  | username: advisor06 | password: Adv06@2026
+Advisor 07  | username: advisor07 | password: Adv07@2026
+Advisor 08  | username: advisor08 | password: Adv08@2026
+Advisor 09  | username: advisor09 | password: Adv09@2026
+Advisor 10  | username: advisor10 | password: Adv10@2026
+Advisor 11  | username: advisor11 | password: Adv11@2026
+Advisor 12  | username: advisor12 | password: Adv12@2026
+Advisor 13  | username: advisor13 | password: Adv13@2026
+Advisor 14  | username: advisor14 | password: Adv14@2026
+Advisor 15  | username: advisor15 | password: Adv15@2026
+
+IMPORTANT: These are starter credentials for development/testing. Change all passwords before production deployment.
+Use manage_users.py reset-password <username> to change a password.

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Manager Dashboard{% endblock %}
+{% block css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+{% block content %}
+<header class="app-header dashboard-header">
+  <div class="header-brand">
+    <img class="header-logo header-logo-full" src="{{ url_for('static', filename='images/ekk_full_logo.png') }}" alt="Ebrahim K. Kanoo">
+    <img class="header-logo header-logo-mark" src="{{ url_for('static', filename='images/ekk_mark.png') }}" alt="Ebrahim K. Kanoo mark">
+    <div><p class="eyebrow">Body & Paint</p><h1>Manager Dashboard</h1></div>
+  </div>
+  <div class="header-actions manager-nav">
+    <span class="live-pill"><span class="live-dot"></span>Live</span>
+    <a class="btn btn-ghost" href="{{ url_for('manager_users') }}"><i class="bi bi-people"></i>Users</a>
+    <a class="btn btn-ghost" href="{{ url_for('manager_settings') }}"><i class="bi bi-sliders"></i>Lists</a>
+    <a class="btn btn-ghost" href="{{ url_for('manager_audit') }}"><i class="bi bi-clock-history"></i>Audit</a>
+    <span class="user-chip"><i class="bi bi-person-circle"></i>{{ session.full_name }}</span>
+    <a class="icon-btn" href="{{ url_for('logout') }}" aria-label="Logout"><i class="bi bi-box-arrow-right"></i></a>
+  </div>
+</header>
+
+<main class="dashboard-shell">
+  <section class="panel filters-panel">
+    <div class="filter-title">
+      <div><h2>Filters</h2><p>All analytics and the Excel export follow these filters.</p></div>
+      <div class="filter-actions">
+        <a class="btn btn-success" href="{{ url_for('manager_export_excel', **request.args) }}"><i class="bi bi-file-earmark-excel"></i>Export Excel</a>
+        <a class="text-btn" href="{{ url_for('manager_dashboard') }}"><i class="bi bi-arrow-counterclockwise"></i>Reset</a>
+      </div>
+    </div>
+    <form class="filters-grid" method="get" id="filterForm">
+      <div class="field"><label>From</label><input type="date" name="date_from" value="{{ request.args.get('date_from','') }}"></div>
+      <div class="field"><label>To</label><input type="date" name="date_to" value="{{ request.args.get('date_to','') }}"></div>
+      <div class="field"><label>Advisor Name</label><select name="advisor"><option value="">All advisors</option>{% for a in advisors %}<option value="{{ a.id }}" {% if request.args.get('advisor')==a.id|string %}selected{% endif %}>{{ a.full_name }}{% if not a.active %} (Inactive){% endif %}</option>{% endfor %}</select></div>
+      <div class="field"><label>Vehicle</label><select name="vehicle_type"><option value="">All vehicles</option>{% for item in vehicles %}<option value="{{ item }}" {% if request.args.get('vehicle_type')==item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+      <div class="field"><label>Status</label><select name="approved"><option value="">All statuses</option><option value="Approved" {% if request.args.get('approved')=='Approved' %}selected{% endif %}>Approved</option><option value="Rejected" {% if request.args.get('approved')=='Rejected' %}selected{% endif %}>Rejected</option></select></div>
+      <div class="field"><label>Damage Area</label><select name="damage_area"><option value="">All areas</option>{% for item in damage_areas %}<option value="{{ item }}" {% if request.args.get('damage_area')==item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+      <div class="field"><label>Service</label><select name="service_offered"><option value="">All services</option>{% for item in services %}<option value="{{ item }}" {% if request.args.get('service_offered')==item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+      <div class="field filter-submit"><label>&nbsp;</label><button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i>Apply Filters</button></div>
+    </form>
+  </section>
+
+  <section class="kpi-grid">
+    <article class="kpi-card"><span>Total Quotations</span><strong>{{ summary.total or 0 }}</strong><small>Filtered entries</small></article>
+    <article class="kpi-card"><span>Approval Rate</span><strong>{{ approval_rate }}%</strong><small>{{ summary.approved or 0 }} approved / {{ summary.rejected or 0 }} rejected</small></article>
+    <article class="kpi-card"><span>Total Quoted Value</span><strong>BHD {{ '%.3f'|format(summary.total_value or 0) }}</strong><small>All filtered quotations</small></article>
+    <article class="kpi-card"><span>Approved Value</span><strong>BHD {{ '%.3f'|format(summary.approved_value or 0) }}</strong><small>Current approved quotations</small></article>
+    <article class="kpi-card"><span>Rejected Value</span><strong>BHD {{ '%.3f'|format(summary.rejected_value or 0) }}</strong><small>Current rejected quotations</small></article>
+    <article class="kpi-card"><span>Recovered Sales</span><strong>{{ recovered.recovered_count or 0 }}</strong><small>Rejected → Approved</small></article>
+    <article class="kpi-card"><span>Recovered Value</span><strong>BHD {{ '%.3f'|format(recovered.recovered_value or 0) }}</strong><small>Value won back later</small></article>
+    <article class="kpi-card"><span>Average Quote</span><strong>BHD {{ '%.3f'|format(summary.average_quote or 0) }}</strong><small>{{ '%.1f'|format(summary.average_panels or 0) }} panels average</small></article>
+  </section>
+
+  <section class="panel admin-panel">
+    <div class="filter-title">
+      <div><h2>Recent Activity</h2><p>Latest actions across the quotation system.</p></div>
+      <div><span class="auto-refresh-note">Dashboard refreshes every 60 seconds</span></div>
+    </div>
+    <div class="recent-activity-list">
+      {% for log in activity_logs %}
+      <div class="activity-row"><span class="activity-time">{{ log.created_at.strftime('%d/%m %H:%M') }}</span><strong>{{ log.full_name }}</strong><span>{{ log.action.replace('_',' ')|title }}</span><span class="activity-details">{{ log.details or '—' }}</span></div>
+      {% else %}<div class="empty-state">No activity has been recorded yet.</div>{% endfor %}
+    </div>
+  </section>
+
+  <section class="panel daily-report-panel">
+    <div class="daily-report-head">
+      <div>
+        <p class="eyebrow">Daily Report</p>
+        <h2>Individual Advisor Performance</h2>
+        <p>Every advisor is listed, including advisors with zero quotations or zero approved sales for the selected day.</p>
+      </div>
+      <form method="get" class="daily-report-actions">
+        {% for key, value in request.args.items() %}{% if key != 'daily_date' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
+        <label for="dailyDate">Report Date</label>
+        <input id="dailyDate" type="date" name="daily_date" value="{{ daily_report_date.isoformat() }}">
+        <button class="btn btn-primary" type="submit"><i class="bi bi-calendar-check"></i>Show Day</button>
+        <a class="btn btn-success" href="{{ url_for('manager_daily_report_excel', daily_date=daily_report_date.isoformat()) }}"><i class="bi bi-file-earmark-excel"></i>Export Daily Report</a>
+      </form>
+    </div>
+
+    <div class="daily-summary-grid">
+      <div class="daily-summary"><span>Team Offers</span><strong>{{ daily_totals.total }}</strong></div>
+      <div class="daily-summary"><span>Approved Sales</span><strong>{{ daily_totals.approved }}</strong></div>
+      <div class="daily-summary"><span>Approval Rate</span><strong>{{ daily_totals.approval_rate }}%</strong></div>
+      <div class="daily-summary"><span>Approved Value</span><strong>BHD {{ '%.3f'|format(daily_totals.approved_value) }}</strong></div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table daily-performance-table">
+        <thead><tr><th>Advisor</th><th>Account</th><th>Offers</th><th>Approved Sales</th><th>Rejected</th><th>Approval %</th><th>Quoted Value</th><th>Approved Value</th><th>Avg Quote</th><th>Panels</th><th>Recovered</th><th>Recovered Value</th></tr></thead>
+        <tbody>
+        {% for row in daily_performance %}
+          <tr class="{% if row.total == 0 %}zero-activity{% endif %}">
+            <td><strong>{{ row.advisor_name }}</strong></td>
+            <td>{% if row.active %}<span class="account-badge active">Active</span>{% else %}<span class="account-badge inactive">Inactive</span>{% endif %}</td>
+            <td>{{ row.total }}</td>
+            <td class="sales-cell">{{ row.approved }}</td>
+            <td>{{ row.rejected }}</td>
+            <td>{{ row.approval_rate }}%</td>
+            <td>BHD {{ '%.3f'|format(row.quoted_value) }}</td>
+            <td>BHD {{ '%.3f'|format(row.approved_value) }}</td>
+            <td>BHD {{ '%.3f'|format(row.average_quote) }}</td>
+            <td>{{ row.panels }}</td>
+            <td>{{ row.recovered }}</td>
+            <td>BHD {{ '%.3f'|format(row.recovered_value) }}</td>
+          </tr>
+        {% endfor %}
+          <tr class="daily-total-row"><td><strong>TEAM TOTAL</strong></td><td>—</td><td>{{ daily_totals.total }}</td><td>{{ daily_totals.approved }}</td><td>{{ daily_totals.rejected }}</td><td>{{ daily_totals.approval_rate }}%</td><td>BHD {{ '%.3f'|format(daily_totals.quoted_value) }}</td><td>BHD {{ '%.3f'|format(daily_totals.approved_value) }}</td><td>BHD {{ '%.3f'|format(daily_totals.average_quote) }}</td><td>{{ daily_totals.panels }}</td><td>{{ daily_totals.recovered }}</td><td>BHD {{ '%.3f'|format(daily_totals.recovered_value) }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="charts-grid">
+    <article class="panel chart-card wide"><div class="chart-title"><div><h2>Advisor Performance</h2><p>Total quotations versus approved quotations</p></div></div><canvas id="advisorChart"></canvas></article>
+    <article class="panel chart-card"><div class="chart-title"><div><h2>Approval Rate by Advisor</h2><p>Percentage approved for each advisor</p></div></div><canvas id="advisorRateChart"></canvas></article>
+    <article class="panel chart-card"><div class="chart-title"><div><h2>Quoted Value by Advisor</h2><p>Total and approved BHD value</p></div></div><canvas id="advisorValueChart"></canvas></article>
+    <article class="panel chart-card"><div class="chart-title"><div><h2>Status Distribution</h2><p>Current quotation status</p></div></div><canvas id="statusChart"></canvas></article>
+    <article class="panel chart-card"><div class="chart-title"><div><h2>Vehicle Types</h2><p>Quotation volume by vehicle</p></div></div><canvas id="vehicleChart"></canvas></article>
+    <article class="panel chart-card"><div class="chart-title"><div><h2>Service Offered</h2><p>Most commonly offered services</p></div></div><canvas id="serviceChart"></canvas></article>
+    <article class="panel chart-card"><div class="chart-title"><div><h2>Damage Areas</h2><p>Most common damaged areas</p></div></div><canvas id="damageChart"></canvas></article>
+    <article class="panel chart-card"><div class="chart-title"><div><h2>Reasons for Refusal</h2><p>Why customers rejected offers</p></div></div><canvas id="refusalChart"></canvas></article>
+    <article class="panel chart-card wide"><div class="chart-title"><div><h2>Quotation Time Series</h2><p>Daily total, approved, and rejected quotations using the active filters</p></div></div><canvas id="timeSeriesChart"></canvas></article>
+    <article class="panel chart-card wide"><div class="chart-title"><div><h2>Monthly Trend</h2><p>Quotation entries over time</p></div></div><canvas id="trendChart"></canvas></article>
+    <article class="panel chart-card"><div class="chart-title"><div><h2>Quotations by Hour</h2><p>When offers are entered during the day</p></div></div><canvas id="hourChart"></canvas></article>
+    <article class="panel chart-card"><div class="chart-title"><div><h2>Quotations by Day</h2><p>Volume by day of week</p></div></div><canvas id="weekdayChart"></canvas></article>
+  </section>
+
+  <section class="panel recent-panel">
+    <div class="chart-title"><div><h2>Quotation Records</h2><p>Latest 100 records matching the current filters</p></div></div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>No.</th><th>Date & Time</th><th>Advisor</th><th>Customer</th><th>Vehicle</th><th>VRN</th><th>Damage</th><th>Service</th><th>Panels</th><th>Price</th><th>Status</th><th>Reason</th></tr></thead>
+      <tbody>{% for q in recent %}<tr><td>{{ q.id }}</td><td>{{ q.created_at.replace('T',' ') }}</td><td>{{ q.advisor_name }}</td><td>{{ q.customer_name }}</td><td>{{ q.vehicle_type }}</td><td><strong>{{ q.vrn }}</strong></td><td>{{ q.damage_area }}</td><td>{{ q.service_offered }}</td><td>{{ q.number_of_panels }}</td><td>BHD {{ '%.3f'|format(q.price_quoted) }}</td><td><span class="status-badge {{ q.approved|lower }}">{{ q.approved }}</span></td><td>{{ q.reason_for_refusal or '—' }}</td></tr>{% else %}<tr><td colspan="12" class="empty-cell">No records match the filters.</td></tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+</main>
+<script>
+window.dashboardData = {{ chart_data|tojson }};
+window.statusData = {approved: {{ summary.approved or 0 }}, rejected: {{ summary.rejected or 0 }}};
+</script>
+{% endblock %}
+{% block scripts %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script><script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>{% endblock %}

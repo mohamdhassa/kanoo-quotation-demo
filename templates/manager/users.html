@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}User Management{% endblock %}
+{% block css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+{% block content %}
+<header class="app-header dashboard-header">
+  <div class="header-brand">
+    <img class="header-logo header-logo-full" src="{{ url_for('static', filename='images/ekk_full_logo.png') }}" alt="Ebrahim K. Kanoo">
+    <img class="header-logo header-logo-mark" src="{{ url_for('static', filename='images/ekk_mark.png') }}" alt="Ebrahim K. Kanoo mark">
+    <div><p class="eyebrow">Manager</p><h1>User Management</h1></div>
+  </div>
+  <div class="header-actions manager-nav">
+    <a class="btn btn-ghost" href="{{ url_for('manager_dashboard') }}"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a class="btn btn-ghost" href="{{ url_for('manager_settings') }}"><i class="bi bi-sliders"></i>Lists</a>
+    <a class="btn btn-ghost" href="{{ url_for('manager_audit') }}"><i class="bi bi-clock-history"></i>Audit</a>
+    <a class="icon-btn" href="{{ url_for('logout') }}" aria-label="Logout"><i class="bi bi-box-arrow-right"></i></a>
+  </div>
+</header>
+<main class="dashboard-shell">
+  <section class="panel admin-panel">
+    <div class="chart-title"><h2>Add User</h2><p>Create an advisor or manager account. Passwords are stored as secure hashes.</p></div>
+    <form method="post" class="filters-grid admin-form">
+      <div class="field"><label>Full Name</label><input name="full_name" required></div>
+      <div class="field"><label>Username</label><input name="username" required autocomplete="off"></div>
+      <div class="field"><label>Role</label><select name="role"><option value="advisor">Advisor</option><option value="manager">Manager</option></select></div>
+      <div class="field"><label>Initial Password</label><input name="password" type="password" minlength="8" required></div>
+      <div class="field filter-submit"><label>&nbsp;</label><button class="btn btn-primary" type="submit"><i class="bi bi-person-plus"></i>Add User</button></div>
+    </form>
+  </section>
+
+  <section class="panel admin-panel">
+    <div class="chart-title"><h2>Existing Users</h2><p>Accounts with quotation history can be disabled but not deleted.</p></div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Quotations</th><th>Reset Password</th><th>Actions</th></tr></thead>
+      <tbody>
+      {% for row in rows %}{% set u=row.user %}
+        <tr>
+          <td><strong>{{ u.full_name }}</strong></td><td>{{ u.username }}</td><td>{{ u.role|title }}</td>
+          <td>{% if u.active %}<span class="account-badge active">Active</span>{% else %}<span class="account-badge inactive">Disabled</span>{% endif %}</td>
+          <td>{{ row.quotation_count }}</td>
+          <td><form method="post" action="{{ url_for('manager_user_reset_password', user_id=u.id) }}" class="inline-form"><input type="password" name="password" minlength="8" placeholder="New password" required><button class="btn btn-ghost" type="submit">Reset</button></form></td>
+          <td><div class="row-actions">
+            <form method="post" action="{{ url_for('manager_user_toggle', user_id=u.id) }}"><button class="btn btn-ghost" type="submit">{% if u.active %}Disable{% else %}Enable{% endif %}</button></form>
+            {% if row.quotation_count == 0 and u.id != session.user_id %}<form method="post" action="{{ url_for('manager_user_delete', user_id=u.id) }}" onsubmit="return confirm('Delete this unused account?')"><button class="btn btn-danger-soft" type="submit">Delete</button></form>{% endif %}
+          </div></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </section>
+</main>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Dropdown Lists{% endblock %}
+{% block css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+{% block content %}
+<header class="app-header dashboard-header">
+  <div class="header-brand"><img class="header-logo header-logo-full" src="{{ url_for('static', filename='images/ekk_full_logo.png') }}" alt="Ebrahim K. Kanoo"><img class="header-logo header-logo-mark" src="{{ url_for('static', filename='images/ekk_mark.png') }}" alt="Ebrahim K. Kanoo mark"><div><p class="eyebrow">Manager</p><h1>Dropdown Lists</h1></div></div>
+  <div class="header-actions manager-nav"><a class="btn btn-ghost" href="{{ url_for('manager_dashboard') }}">Dashboard</a><a class="btn btn-ghost" href="{{ url_for('manager_users') }}">Users</a><a class="btn btn-ghost" href="{{ url_for('manager_audit') }}">Audit</a><a class="icon-btn" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i></a></div>
+</header>
+<main class="dashboard-shell">
+  <section class="panel admin-panel">
+    <div class="chart-title"><h2>Add Dropdown Option</h2><p>Changes appear automatically on advisor forms and manager filters.</p></div>
+    <form method="post" class="filters-grid admin-form">
+      <div class="field"><label>List</label><select name="category"><option value="vehicle">Vehicle Type</option><option value="damage_area">Damage Area</option><option value="service">Service Offered</option><option value="refusal_reason">Reason for Refusal</option></select></div>
+      <div class="field"><label>New Value</label><input name="value" required></div>
+      <div class="field filter-submit"><label>&nbsp;</label><button class="btn btn-primary" type="submit">Add Option</button></div>
+    </form>
+  </section>
+  {% set names={'vehicle':'Vehicle Types','damage_area':'Damage Areas','service':'Services Offered','refusal_reason':'Reasons for Refusal'} %}
+  <section class="settings-grid">
+  {% for category, title in names.items() %}
+    <article class="panel admin-panel"><div class="chart-title"><h2>{{ title }}</h2></div><div class="option-list">
+      {% for item in grouped.get(category, []) %}<div class="option-row"><span>{{ item.value }}</span><form method="post" action="{{ url_for('manager_setting_toggle', option_id=item.id) }}"><button class="btn btn-ghost" type="submit">{% if item.active %}Disable{% else %}Enable{% endif %}</button></form></div>{% endfor %}
+    </div></article>
+  {% endfor %}
+  </section>
+</main>
+{% endblock %}

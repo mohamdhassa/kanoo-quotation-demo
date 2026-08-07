@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}New Quotation{% endblock %}
+{% block css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/advisor.css') }}">{% endblock %}
+
+{% block content %}
+<header class="app-header">
+    <div class="header-brand">
+        <img class="header-logo header-logo-full" src="{{ url_for('static', filename='images/ekk_full_logo.png') }}" alt="Ebrahim K. Kanoo">
+        <img class="header-logo header-logo-mark" src="{{ url_for('static', filename='images/ekk_mark.png') }}" alt="Ebrahim K. Kanoo mark">
+        <div><p class="eyebrow">Body & Paint</p><h1>New Quotation</h1></div>
+    </div>
+    <div class="header-actions">
+        <span class="user-chip"><i class="bi bi-person-circle"></i>{{ session.full_name }}</span>
+        <a class="btn btn-secondary" href="{{ url_for('advisor_search') }}">
+            <i class="bi bi-search"></i><span>Search</span>
+        </a>
+        <a class="icon-btn" href="{{ url_for('logout') }}" aria-label="Logout" title="Logout">
+            <i class="bi bi-box-arrow-right"></i>
+        </a>
+    </div>
+</header>
+
+<main class="page-shell">
+    <section class="panel form-panel">
+        <div class="section-heading entry-heading">
+            <div>
+                <h2>Rejected Sales Offer Entry</h2>
+                <p>Enter the quotation details below. No., date, time and advisor are recorded automatically.</p>
+            </div>
+        </div>
+
+        <div class="auto-fields" aria-label="Automatic entry information">
+            <div class="auto-field">
+                <span>No.</span>
+                <strong>Automatic</strong>
+            </div>
+            <div class="auto-field">
+                <span>Date</span>
+                <strong>{{ now.strftime('%d/%m/%Y') if now else 'Automatic' }}</strong>
+            </div>
+            <div class="auto-field">
+                <span>Time</span>
+                <strong>{{ now.strftime('%I:%M %p') if now else 'Automatic' }}</strong>
+            </div>
+            <div class="auto-field">
+                <span>Advisor</span>
+                <strong>{{ session.full_name }}</strong>
+            </div>
+        </div>
+
+        <form id="quotationForm" class="form-grid" method="post" autocomplete="off">
+            <div class="field">
+                <label for="customerName">Customer Name *</label>
+                <input id="customerName" name="customer_name" type="text"
+                       value="{{ form.get('customer_name','') }}"
+                       placeholder="Customer name" required maxlength="120">
+            </div>
+
+            <div class="field">
+                <label for="vehicleType">Vehicle Type *</label>
+                <select id="vehicleType" name="vehicle_type" required>
+                    <option value="">Select vehicle</option>
+                    {% for item in vehicles %}
+                    <option value="{{ item }}" {% if form.get('vehicle_type') == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="vrn">VRN / Car Number *</label>
+                <input id="vrn" name="vrn" type="text"
+                       value="{{ form.get('vrn','') }}"
+                       placeholder="Vehicle registration number" required maxlength="30"
+                       autocapitalize="characters">
+            </div>
+
+            <div class="field">
+                <label for="damageArea">Damage Area *</label>
+                <select id="damageArea" name="damage_area" required>
+                    <option value="">Select damage area</option>
+                    {% for item in damage_areas %}
+                    <option value="{{ item }}" {% if form.get('damage_area') == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="serviceOffered">Service Offered *</label>
+                <select id="serviceOffered" name="service_offered" required>
+                    <option value="">Select service</option>
+                    {% for item in services %}
+                    <option value="{{ item }}" {% if form.get('service_offered') == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="panels">Number of Panels *</label>
+                <select id="panels" name="number_of_panels" required>
+                    <option value="">Select number</option>
+                    {% for n in range(1, 21) %}
+                    <option value="{{ n }}" {% if form.get('number_of_panels')|string == n|string %}selected{% endif %}>{{ n }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="priceQuoted">Price Quoted (BHD) *</label>
+                <div class="price-input">
+                    <span>BHD</span>
+                    <input id="priceQuoted" name="price_quoted" type="number"
+                           min="0" step="0.001" inputmode="decimal"
+                           value="{{ form.get('price_quoted','') }}"
+                           placeholder="0.000" required>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="approved">Approved *</label>
+                <select id="approved" name="approved" required>
+                    <option value="Rejected" {% if form.get('approved','Rejected') == 'Rejected' %}selected{% endif %}>Rejected</option>
+                    <option value="Approved" {% if form.get('approved') == 'Approved' %}selected{% endif %}>Approved</option>
+                </select>
+            </div>
+
+            <div class="field full" id="refusalReasonField">
+                <label for="reason">Reason for Refusal *</label>
+                <select id="reason" name="reason_for_refusal">
+                    <option value="">Select reason</option>
+                    {% for item in refusal_reasons %}
+                    <option value="{{ item }}" {% if form.get('reason_for_refusal') == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-actions full">
+                <button type="reset" class="btn btn-ghost">
+                    <i class="bi bi-arrow-counterclockwise"></i>Clear
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-database-check"></i>Save Entry
+                </button>
+            </div>
+        </form>
+    </section>
+</main>
+{% endblock %}
+
+{% block scripts %}<script src="{{ url_for('static', filename='js/advisor.js') }}"></script>{% endblock %}
