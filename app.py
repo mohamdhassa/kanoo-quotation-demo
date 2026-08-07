@@ -60,9 +60,9 @@ if os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RENDER"):
 
 db = SQLAlchemy(app)
 
-DEFAULT_VEHICLES = ["Corolla", "Camry", "Yaris", "Hilux", "Land Cruiser", "Prado", "Fortuner", "RAV4", "Highlander", "Rush", "Coaster", "Hiace", "Other"]
+DEFAULT_VEHICLES = ["Corolla", "Camry", "Yaris", "Land Cruiser", "Prado", "Fortuner", "RAV4", "Highlander", "Rush","Other"]
 DEFAULT_DAMAGE_AREAS = ["Front Bumper", "Rear Bumper", "Front Fender LH", "Front Fender RH", "Front Door LH", "Front Door RH", "Rear Door LH", "Rear Door RH", "Quarter Panel LH", "Quarter Panel RH", "Bonnet", "Roof", "Tailgate", "Boot Lid", "Mirror", "Other"]
-DEFAULT_SERVICES = ["Paint", "Repair", "Replace", "Polish", "Dent Removal", "Scratch Repair", "Smart Repair", "Bumper Repair", "Body Repair", "Other"]
+DEFAULT_SERVICES = ["Paint", "Fix", "Replace", "Polish", "Dent Removal", "Scratch Repair", "Smart Repair", "Body Repair", "Other"]
 DEFAULT_REFUSAL_REASONS = ["Price Too High", "Customer Not Interested", "Will Return Later", "Needs Approval", "No Time", "Already Repaired Elsewhere", "Insurance Related", "Other"]
 
 
