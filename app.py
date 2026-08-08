@@ -204,21 +204,7 @@ def seed_initial_users() -> None:
             )
         )
 
-    # Keep the existing 15 starter advisor accounts so the current workflow
-    # continues to work after deployment. Change their passwords before public use.
-    for i in range(1, 16):
-        username = f"advisor{i:02d}"
-        if not User.query.filter_by(username=username).first():
-            db.session.add(
-                User(
-                    username=username,
-                    password_hash=generate_password_hash(f"Adv{i:02d}@2026"),
-                    full_name=f"Advisor {i:02d}",
-                    role="advisor",
-                    active=True,
-                )
-            )
-    db.session.commit()
+
 
 
 def init_db() -> None:
