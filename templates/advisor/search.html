@@ -1,82 +1,241 @@
-{% if quotations %}
+{% extends "base.html" %}
 
-<div class="table-wrap">
+{% block title %}Search Quotation{% endblock %}
 
-<table class="data-table">
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/advisor.css') }}">
+{% endblock %}
 
-<thead>
-<tr>
-    <th>No.</th>
-    <th>Date</th>
-    <th>Customer</th>
-    <th>Vehicle</th>
-    <th>VRN</th>
-    <th>Price</th>
-    <th>Status</th>
-    <th></th>
-</tr>
-</thead>
+{% block content %}
 
-<tbody>
+<header class="app-header">
 
-{% for q in quotations %}
+    <div class="header-brand">
 
-<tr>
+        <img
+            class="header-logo header-logo-full"
+            src="{{ url_for('static', filename='images/ekk_full_logo.png') }}"
+            alt="Ebrahim K. Kanoo"
+        >
 
-    <td>{{ q.id }}</td>
+        <img
+            class="header-logo header-logo-mark"
+            src="{{ url_for('static', filename='images/ekk_mark.png') }}"
+            alt="Ebrahim K. Kanoo mark"
+        >
 
-    <td>
-        {{ q.created_at.strftime('%d/%m/%Y') if q.created_at else '—' }}
-    </td>
+        <div>
+            <p class="eyebrow">Body & Paint</p>
+            <h1>Search Quotation</h1>
+        </div>
 
-    <td>{{ q.customer_name }}</td>
+    </div>
 
-    <td>{{ q.vehicle_type }}</td>
+    <div class="header-actions">
 
-    <td>
-        <strong>{{ q.vrn }}</strong>
-    </td>
-
-    <td>
-        BHD {{ '%.3f'|format(q.price_quoted or 0) }}
-    </td>
-
-    <td>
-        <span class="status-badge {{ q.approved|lower }}">
-            {{ q.approved }}
+        <span class="user-chip">
+            <i class="bi bi-person-circle"></i>
+            {{ session.full_name }}
         </span>
-    </td>
 
-    <td>
         <a
             class="btn btn-secondary"
-            href="{{ url_for('edit_quotation', quotation_id=q.id) }}"
+            href="{{ url_for('advisor_new') }}"
         >
-            <i class="bi bi-pencil"></i>
-            Edit
+            <i class="bi bi-plus-lg"></i>
+            <span>New Entry</span>
         </a>
-    </td>
 
-</tr>
+        <a
+            class="icon-btn"
+            href="{{ url_for('logout') }}"
+            aria-label="Logout"
+        >
+            <i class="bi bi-box-arrow-right"></i>
+        </a>
 
-{% endfor %}
+    </div>
 
-</tbody>
+</header>
 
-</table>
 
-</div>
+<main class="page-shell">
 
-{% else %}
+    <!-- SEARCH FORM -->
+    <section class="panel search-panel">
 
-<div class="empty-state">
+        <div class="section-heading">
 
-    <i class="bi bi-search"></i>
+            <div>
+                <h2>Find by VRN</h2>
+                <p>
+                    Enter the full or partial vehicle registration number.
+                </p>
+            </div>
 
-    <h3>No quotation found</h3>
+        </div>
 
-    <p>Try another VRN.</p>
+        <form
+            class="search-bar"
+            method="get"
+            action="{{ url_for('advisor_search') }}"
+        >
 
-</div>
+            <div class="input-with-icon">
 
-{% endif %}
+                <i class="bi bi-car-front"></i>
+
+                <input
+                    name="vrn"
+                    type="search"
+                    value="{{ vrn or '' }}"
+                    placeholder="Example: 123456"
+                    autocomplete="off"
+                    required
+                >
+
+            </div>
+
+            <button
+                class="btn btn-primary"
+                type="submit"
+            >
+                <i class="bi bi-search"></i>
+                Search
+            </button>
+
+        </form>
+
+    </section>
+
+
+    <!-- ONLY SHOW RESULTS AFTER USER SEARCHES -->
+    {% if vrn %}
+
+    <section class="panel result-panel">
+
+        <div class="section-heading">
+
+            <div>
+                <h2>Search Results</h2>
+
+                <p>
+                    Results for VRN:
+                    <strong>{{ vrn }}</strong>
+                </p>
+            </div>
+
+        </div>
+
+
+        {% if quotations %}
+
+        <div class="table-wrap">
+
+            <table class="data-table">
+
+                <thead>
+
+                    <tr>
+                        <th>No.</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Vehicle</th>
+                        <th>VRN</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for q in quotations %}
+
+                    <tr>
+
+                        <td>
+                            {{ q.id }}
+                        </td>
+
+                        <td>
+                            {{ q.created_at.strftime('%d/%m/%Y') if q.created_at else '—' }}
+                        </td>
+
+                        <td>
+                            {{ q.customer_name }}
+                        </td>
+
+                        <td>
+                            {{ q.vehicle_type }}
+                        </td>
+
+                        <td>
+                            <strong>{{ q.vrn }}</strong>
+                        </td>
+
+                        <td>
+                            BHD {{ '%.3f'|format(q.price_quoted or 0) }}
+                        </td>
+
+                        <td>
+
+                            <span class="status-badge {{ q.approved|lower }}">
+                                {{ q.approved }}
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <a
+                                class="btn btn-secondary"
+                                href="{{ url_for(
+                                    'edit_quotation',
+                                    quotation_id=q.id
+                                ) }}"
+                            >
+
+                                <i class="bi bi-pencil"></i>
+                                Edit
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% else %}
+
+        <div class="empty-state">
+
+            <i class="bi bi-search"></i>
+
+            <h3>No quotation found</h3>
+
+            <p>
+                No quotation matches VRN
+                <strong>{{ vrn }}</strong>.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </section>
+
+    {% endif %}
+
+</main>
+
+{% endblock %}
