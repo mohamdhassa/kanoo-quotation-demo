@@ -414,9 +414,149 @@ def advisor_search():
     return render_template("advisor/search.html", quotations=rows, vrn=vrn)
 
 
-@app.route("/advisor/quotation/<int:quotation_id>/edit", methods=["GET", "POST"])
+@app.route(
+    "/advisor/quotation/<int:quotation_id>/edit",
+    methods=["GET", "POST"]
+)
 @role_required("advisor")
 def edit_quotation(quotation_id: int):
+
+    quotation = db.session.get(
+        Quotation,
+        quotation_id
+    )
+
+    if not quotation:
+
+        flash(
+            "Quotation not found.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("advisor_search")
+        )
+
+    refusal_reasons = get_options(
+        "refusal_reason"
+    )
+
+    if request.method == "POST":
+
+        approved = request.form.get(
+            "approved",
+            ""
+        ).strip()
+
+        reason = request.form.get(
+            "reason_for_refusal",
+            ""
+        ).strip()
+
+        if approved not in {
+            "Rejected",
+            "Approved"
+        }:
+
+            flash(
+                "Select a valid status.",
+                "danger"
+            )
+
+            return render_template(
+                "advisor/edit.html",
+                quotation=quotation,
+                refusal_reasons=refusal_reasons
+            )
+
+        if (
+            approved == "Rejected"
+            and not reason
+        ):
+
+            flash(
+                "Select a reason for refusal.",
+                "danger"
+            )
+
+            return render_template(
+                "advisor/edit.html",
+                quotation=quotation,
+                refusal_reasons=refusal_reasons
+            )
+
+        if (
+            approved == "Rejected"
+            and reason not in refusal_reasons
+        ):
+
+            flash(
+                "Select a valid reason for refusal.",
+                "danger"
+            )
+
+            return render_template(
+                "advisor/edit.html",
+                quotation=quotation,
+                refusal_reasons=refusal_reasons
+            )
+
+        if approved == "Approved":
+            reason = ""
+
+        old_status = quotation.approved
+
+        now = local_now()
+
+        quotation.approved = approved
+
+        quotation.reason_for_refusal = (
+            reason or None
+        )
+
+        quotation.updated_at = now
+
+        if old_status != approved:
+
+            db.session.add(
+                StatusHistory(
+                    quotation_id=quotation.id,
+                    old_status=old_status,
+                    new_status=approved,
+                    changed_by=session["user_id"],
+                    changed_at=now,
+                )
+            )
+
+        write_audit(
+            "quotation_updated",
+            "quotation",
+            quotation.id,
+            (
+                f"VRN {quotation.vrn}; "
+                f"{old_status} → {approved}"
+            )
+        )
+
+        db.session.commit()
+
+        flash(
+            "Quotation updated successfully.",
+            "success"
+        )
+
+        return redirect(
+            url_for(
+                "advisor_search",
+                vrn=quotation.vrn
+            )
+        )
+
+    return render_template(
+        "advisor/edit.html",
+        quotation=quotation,
+        refusal_reasons=refusal_reasons
+    )
     quotation = db.session.get(Quotation, quotation_id)
     if not quotation:
         flash("Quotation not found.", "danger")
