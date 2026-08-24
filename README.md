@@ -1,20 +1,38 @@
-# Cash Quotation System
+# Cash Quotation System — V1
 
-A complete Flask application for body-shop cash quotations.
+A Flask-based Body & Paint quotation management system with advisor quotation entry/search and a management analytics dashboard.
 
-## Included
+## Main Features
 
-- Login with Advisor and Manager roles
-- Responsive advisor data-entry page
-- Search quotations by full or partial VRN
-- Change a rejected quotation to approved
-- Automatic date, time and advisor recording
-- SQLite database created automatically
-- Status-change history stored in the database
-- Manager dashboard with filters, KPIs, charts and records table
+### Advisor
+- Login
+- New quotation entry
+- Automatic quotation number, date/time and advisor
+- Approved or Rejected status
+- Reason for refusal
+- Full/partial VRN search
+- Edit previous quotation
+- Rejected -> Approved recovery tracking
 
-## Run on Windows
+### Manager
+- Dashboard filters and KPIs
+- Advisor performance analysis
+- Recovered-sales analysis
+- Vehicle/service/damage/refusal analysis
+- Daily, monthly, hourly and weekday charts
+- Daily advisor performance
+- Filtered Excel export
+- Daily-report Excel export
+- User management
+- Dropdown-list management
+- Audit log
 
+## Roles
+V1 has two roles: `advisor` and `manager`.
+
+The current V1 code does **not** automatically create 15 starter advisor accounts. Real advisor accounts are managed through the Manager user-management functions.
+
+## Local Run
 ```bash
 python -m venv venv
 venv\Scripts\activate
@@ -22,67 +40,28 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open `http://127.0.0.1:5000`. The root page automatically opens Login.
+Open `http://127.0.0.1:5000`. When `DATABASE_URL` is not configured, the application uses local SQLite.
 
-## Demo accounts
+## Production
+The current production architecture is Render + Supabase PostgreSQL. Important environment variables are documented in `.env.example`.
 
-- Advisor: `advisor` / `advisor123`
-- Manager: `manager` / `manager123`
+## Documentation
+Full V1 documentation is in [`docs/`](docs/INDEX.md):
+- Architecture
+- ERD
+- Authentication and roles
+- Database structure
+- Routes and features
+- Deployment
+- Security
+- Operations and maintenance
+- Project handover
+- Live-state snapshot
 
-## Database
+## Production Safety
+Do not commit production secrets, customer-data exports, database passwords or live credentials to GitHub.
 
-The application creates `instance/quotation_system.db` automatically on first run.
+For users with quotation history, disable the account instead of deleting it so historical reporting remains correct.
 
-Before deployment, set a strong `SECRET_KEY` environment variable and change the demo passwords.
-
-## Multiple users
-
-The system supports any number of Advisor and Manager accounts. Each quotation stores the ID of the advisor who was logged in when it was created, so the Manager dashboard can analyze results separately by advisor.
-
-Create a user interactively:
-
-```bash
-python manage_users.py add
-```
-
-Example without prompts:
-
-```bash
-python manage_users.py add --username ahmed --name "Ahmed Ali" --role advisor --password ChangeMe123
-```
-
-List all users:
-
-```bash
-python manage_users.py list
-```
-
-Reset a password:
-
-```bash
-python manage_users.py reset-password ahmed
-```
-
-Disable or re-enable a user without deleting their quotation history:
-
-```bash
-python manage_users.py disable ahmed
-python manage_users.py enable ahmed
-```
-
-Do not delete old advisor rows from the database because quotations refer to those users for historical reporting. Disable the login instead.
-
-## Initial multi-user accounts
-The app automatically seeds 15 advisor accounts (`advisor01` through `advisor15`) plus the manager account on first run. See `ADVISOR_ACCOUNTS.txt` for the development credentials. Change all starter passwords before production use.
-
-## Manager dashboard
-The manager dashboard supports filtering by date, advisor name, vehicle, status, damage area and service. Analytics include approval rate, quoted/approved/rejected value, recovered sales, advisor performance, advisor approval rates, advisor values, vehicle/service/damage/refusal distributions, monthly trend, hourly activity and day-of-week activity.
-
-## Excel export
-The **Export Excel** button downloads the exact records matching the current dashboard filters. The workbook contains the quotation number, date/time, advisor, customer, vehicle, VRN, damage area, service, panels, price, status, refusal reason and last updated time.
-
-## Daily Advisor Performance
-The manager dashboard includes a date-based Daily Advisor Performance report. Every advisor account is included in the report even when the advisor has zero quotations or zero approved sales for that day. The report includes offers, approved sales, rejected offers, approval rate, quoted/approved values, panels, and recovered rejected-to-approved sales. The selected day can be exported to a branded Excel workbook from the dashboard.
-
-## Branding
-The supplied Ebrahim K. Kanoo full logo and mark are stored in `static/images/` and used on login, page headers, the favicon, and the daily Excel report.
+## V2
+Multi-branch functionality is being developed separately as V2 so the current V1 production system can remain stable until the new version is tested and approved.
